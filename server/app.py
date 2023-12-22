@@ -16,14 +16,14 @@ COHERE_API_KEY = os.environ.get('COHERE_API_KEY')
 
 app = Flask(__name__)
 CORS(app, origins='http://localhost:3000')
-co = cohere.Client(COHERE_API_KEY)
+co = cohere.Client('COHERE KEY')
 
 transcription_map = {}
 with open('df.csv', newline='') as csvfile:
     fragments = csv.reader(csvfile, delimiter=',', quotechar='"')
     next(fragments)
     for row in fragments:
-        id, filename, transcription, context = row
+        id, filename, transcription, context, people = row
         transcription_map[transcription] = filename
 
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
@@ -43,7 +43,7 @@ with open('df.csv', newline='') as csvfile:
     fragments = csv.reader(csvfile, delimiter=',', quotechar='"')
     next(fragments)
     for row in fragments:
-        id, filename, transcription, context = row
+        id, filename, transcription, context, people = row
         context_map[context] = filename
 
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
@@ -61,14 +61,13 @@ def branch():
     query = request.form['query']
     user_input_embedding = model.encode(query)
 
-    # Ensure user_input_embedding has the same number of dimensions as embeddings
     user_input_embedding = user_input_embedding.reshape(1, -1)
 
     transcription_similarities = cosine_similarity(user_input_embedding, list(embeddings.values()))
     context_similarities = cosine_similarity(user_input_embedding, list(context_embeddings.values()))
 
-    transcription_weight = 0.7
-    context_weight = 0.3
+    transcription_weight = 0.6
+    context_weight = 0.4
 
     max_len = max(len(transcription_similarities[0]), len(context_similarities[0]))
     transcription_similarities = np.pad(transcription_similarities, ((0, 0), (0, max_len - len(transcription_similarities[0]))), 'constant')
@@ -77,7 +76,7 @@ def branch():
     combined_similarities = (transcription_weight * transcription_similarities + context_weight * context_similarities)
 
     most_similar_indices = combined_similarities.argsort()[0][::-1]
-    most_similar_indices = most_similar_indices[:5]
+    most_similar_indices = most_similar_indices[:2]
 
     ARTICLE = []
 
@@ -85,9 +84,18 @@ def branch():
     df = pd.read_csv('df.csv')
     for idx in most_similar_indices:
         info = df.iloc[idx]
-        ARTICLE.append(f"answer/summarize the following '{query}' using the following ")
-        ARTICLE.append(info.to_dict().get('Transcription'))
+        # article_dict = {
+        #     'context': info.to_dict().get('Context'),
+        #     'transcription': info.to_dict().get('Transcription'),
+        #     'transcription': info.to_dict().get('Transcription')
+        # }
+        ARTICLE.append(f"you are a conversational AI that can search through memories, with access to transcripts and visual contexts. answer the query: '{query}', using the visual context: ")
         ARTICLE.append(info.to_dict().get('Context'))
+        ARTICLE.append(f"transcription: ")
+        ARTICLE.append(info.to_dict().get('Transcription'))
+        if info.to_dict().get('People') != 'no one':
+            ARTICLE.append(f"and people's names present in the video: ")
+            ARTICLE.append(info.to_dict().get('People'))
         final_similarities.append(info.to_dict())
     
     co_summary = co.summarize(text=' '.join(ARTICLE))
