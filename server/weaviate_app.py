@@ -29,13 +29,30 @@ def test():
     return jsonify({'results': 'successfully loaded test endpoint'})
 
 
+@app.route('/api/add', methods=["POST", "GET"])
+def add():
+    client.batch.configure(batch_size=20)
+    with client.batch as batch:
+        properties = {
+            "file_name": request.form['File Name'],
+            "transcription": request.form['Transcription'],
+            "context": request.form['Context'],
+            "people": request.form['People']
+        }
+        batch.add_data_object(
+            data_object=properties,
+            class_name="Media"
+        )
+    return jsonify({'results': 'successfully added new video'})
+
 @app.route('/api/branch', methods=["POST", "GET"])
 def branch():
     query = request.form['query']
+    print(f"Query: {query}")
     response = (
         client.query
         .get("Media", ["file_name", "transcription", "context", "people"])
-        .with_near_text({"concepts": ["stickers"]})
+        .with_near_text({"concepts": [query]})
         .with_limit(2)
         .do()
     )
@@ -51,7 +68,7 @@ def branch():
         ARTICLE.append(f"People: ")
         ARTICLE.append(r.get("people"))    
     co_summary = co.summarize(text=' '.join(ARTICLE))
-
+    print(responses)
     return jsonify({'results': responses, 'summary': co_summary })
 
 
