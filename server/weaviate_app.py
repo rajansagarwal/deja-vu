@@ -10,11 +10,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import cohere
 from flask_cors import CORS
-from dotenv import load_dotenv
-load_dotenv()
 
 # env reference to COHERE_API_KEY
-COHERE_API_KEY = os.environ['COHERE_API_KEY']
+COHERE_API_KEY = os.environ.get('COHERE_API_KEY')
 
 app = Flask(__name__)
 CORS(app, origins='http://localhost:3000')
@@ -57,8 +55,6 @@ context_embeddings.values()
 
 c_scaled_data = scaler.fit_transform(list(context_embeddings.values()))
 reduced_context_data = reducer.fit_transform(c_scaled_data)
-
-print("finished loading")
 
 @app.route('/api/test', methods=["POST", "GET"])
 def test():
