@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Rnd } from "react-rnd";
+import { Button } from "@/components/ui/button"
+import { Headphones } from "lucide-react"
+
 
 export default function App() {
   const [loading, setLoading] = useState(false);
@@ -47,7 +50,7 @@ export default function App() {
         console.log(data);
 
         if (data.results && data.results[index]) {
-          const videoFileName = data.results[index]["File Name"].replace(
+          const videoFileName = data.results[index]["file_name"].replace(
             "mov",
             "mp4"
           );
@@ -77,22 +80,24 @@ export default function App() {
         Your browser does not support the video tag.
       </video>
 
-      <button
+      <Button
         style={{
           border: "none",
           outline: "none",
           background: "transparent",
           cursor: "pointer",
           fontSize: "16px",
-          color: "#666666",
+          color: "#000000",
           position: "absolute",
           top: "10px",
           right: "10px",
         }}
         onClick={() => setMuted(!muted)}
       >
-        {muted ? "Unmute" : "Mute"}
-      </button>
+        <Headphones>
+          {muted ? "Unmute" : "Mute"}
+        </Headphones>
+      </Button>
 
       <main className="relative z-10">
         {response ? (

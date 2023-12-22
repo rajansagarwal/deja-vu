@@ -1,4 +1,16 @@
 import React from "react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuIndicator,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  NavigationMenuViewport,
+} from "@/components/ui/navigation-menu"
+
+import Navbar from '../components/ui/navbar';
 
 export default function Home() {
   const backgroundImageStyle = {
@@ -17,6 +29,9 @@ export default function Home() {
   return (
     <div className="relative min-h-screen">
       <div className="absolute inset-0" style={blurOverlayStyle}></div>
+        <div>
+          <Navbar/>
+        </div>
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-white text-center">
           <h1 className="text-4xl font-bold">your memories reimagined.</h1>
