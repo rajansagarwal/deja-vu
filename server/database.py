@@ -19,6 +19,7 @@ client = weaviate.Client(
 """
 INITIALIZE SCHEMA OBJECT
 
+
 media_obj = {
     "class": "Media",
     "vectorizer": "text2vec-cohere",  # If set to "none" you must always provide vectors yourself. Could be any other "text2vec-*" also.
@@ -30,7 +31,7 @@ media_obj = {
 
 client.schema.create_class(media_obj)
 
-IMPORT EXISTING CSV DATATA
+IMPORT EXISTING CSV DATA
 
 with open('df.csv', 'r') as csv_file:
     # Create a CSV reader
@@ -50,22 +51,28 @@ with client.batch as batch:  # Initialize a batch process
         properties = {
             "file_name": d["File Name"],
             "transcription": d["Transcription"],
-            "content": d["Context"]
+            "context": d["Context"],
+            "people": d["People"]
         }
         batch.add_data_object(
             data_object=properties,
             class_name="Media"
         )
 
-print("Complete!")
+print("Loading Complete!")
 """
 
 response = (
     client.query
-    .get("Media", ["file_name", "transcription", "content"])
-    .with_near_text({"concepts": ["McMaster"]})
+    .get("Media", ["file_name", "transcription", "context", "people"])
+    .with_near_text({"concepts": ["stickers"]})
     .with_limit(2)
     .do()
 )
+"""
+responses = response["data"]["Get"]["Media"]
 
+for r in responses:
+    print(r.get("context"))
+"""
 print(json.dumps(response, indent=4))

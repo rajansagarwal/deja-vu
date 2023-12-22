@@ -99,7 +99,7 @@ def branch():
         # }
         ARTICLE.append(f"you are a conversational AI that can search through memories, with access to transcripts and visual contexts. answer the query: '{query}', using the visual context: ")
         ARTICLE.append(info.to_dict().get('Context'))
-        ARTICLE.append(f"transcription: ")
+        ARTICLE.append(f"Transcription: ")
         ARTICLE.append(info.to_dict().get('Transcription'))
         if info.to_dict().get('People') != 'no one':
             ARTICLE.append(f"and people's names present in the video: ")

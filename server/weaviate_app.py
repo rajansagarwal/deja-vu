@@ -1,102 +1,58 @@
-import pandas as pd
-import umap.umap_ as umap
-from transformers import pipeline
-import csv
-from sklearn.preprocessing import StandardScaler
-from sentence_transformers import SentenceTransformer
 import os
 from flask import Flask, request, jsonify
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 import cohere
 from flask_cors import CORS
+from dotenv import load_dotenv
+load_dotenv()
+import weaviate
+import json
+
+client = weaviate.Client(
+    url = os.environ['DB_URL'],  
+    auth_client_secret=weaviate.AuthApiKey(api_key=os.environ['WEAVIATE_API_KEY']), 
+    additional_headers = {
+        "X-Cohere-Api-Key": os.environ['COHERE_API_KEY']
+    }
+)
 
 # env reference to COHERE_API_KEY
-COHERE_API_KEY = os.environ.get('COHERE_API_KEY')
+COHERE_API_KEY = os.environ['COHERE_API_KEY']
 
 app = Flask(__name__)
 CORS(app, origins='http://localhost:3000')
-co = cohere.Client(COHERE_API_KEY)
+co = cohere.Client(os.environ['COHERE_API_KEY'])
 
-transcription_map = {}
-with open('df.csv', newline='') as csvfile:
-    fragments = csv.reader(csvfile, delimiter=',', quotechar='"')
-    next(fragments)
-    for row in fragments:
-        id, filename, transcription, context = row
-        transcription_map[transcription] = filename
-
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-transcriptions = list(transcription_map.keys())
-embeddings = model.encode(transcriptions)
-
-embeddings = {transcription_map[paragraph]: embedding for paragraph, embedding in zip(transcriptions, embeddings)}
-embeddings.values()
-
-reducer = umap.UMAP()
-scaler = StandardScaler()
-scaled_data = scaler.fit_transform(list(embeddings.values()))
-reduced_data = reducer.fit_transform(scaled_data)
-
-context_map = {}
-with open('df.csv', newline='') as csvfile:
-    fragments = csv.reader(csvfile, delimiter=',', quotechar='"')
-    next(fragments)
-    for row in fragments:
-        id, filename, transcription, context = row
-        context_map[context] = filename
-
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-contexts = list(context_map.keys())
-context_embeddings = model.encode(contexts)
-
-context_embeddings = {context_map[paragraph]: embedding for paragraph, embedding in zip(contexts, context_embeddings)}
-context_embeddings.values()
-
-c_scaled_data = scaler.fit_transform(list(context_embeddings.values()))
-reduced_context_data = reducer.fit_transform(c_scaled_data)
+print("finished loading")
 
 @app.route('/api/test', methods=["POST", "GET"])
 def test():
     return jsonify({'results': 'successfully loaded test endpoint'})
 
+
 @app.route('/api/branch', methods=["POST", "GET"])
 def branch():
     query = request.form['query']
-    user_input_embedding = model.encode(query)
-
-    # Ensure user_input_embedding has the same number of dimensions as embeddings
-    user_input_embedding = user_input_embedding.reshape(1, -1)
-
-    transcription_similarities = cosine_similarity(user_input_embedding, list(embeddings.values()))
-    context_similarities = cosine_similarity(user_input_embedding, list(context_embeddings.values()))
-
-    transcription_weight = 0.7
-    context_weight = 0.3
-
-    max_len = max(len(transcription_similarities[0]), len(context_similarities[0]))
-    transcription_similarities = np.pad(transcription_similarities, ((0, 0), (0, max_len - len(transcription_similarities[0]))), 'constant')
-    context_similarities = np.pad(context_similarities, ((0, 0), (0, max_len - len(context_similarities[0]))), 'constant')
-
-    combined_similarities = (transcription_weight * transcription_similarities + context_weight * context_similarities)
-
-    most_similar_indices = combined_similarities.argsort()[0][::-1]
-    most_similar_indices = most_similar_indices[:5]
-
+    response = (
+        client.query
+        .get("Media", ["file_name", "transcription", "context", "people"])
+        .with_near_text({"concepts": ["stickers"]})
+        .with_limit(2)
+        .do()
+    )
     ARTICLE = []
 
-    final_similarities = []
-    df = pd.read_csv('df.csv')
-    for idx in most_similar_indices:
-        info = df.iloc[idx]
-        ARTICLE.append(f"answer/summarize the following '{query}' using the following ")
-        ARTICLE.append(info.to_dict().get('Transcription'))
-        ARTICLE.append(info.to_dict().get('Context'))
-        final_similarities.append(info.to_dict())
-    
+    responses = response["data"]["Get"]["Media"]
+    ARTICLE.append(f"you are a conversational AI that can search through memories, with access to transcripts and visual contexts. answer the query: '{query}', using the visual context, transcription, and people from the following clips: ")
+    for r in responses:
+        ARTICLE.append(f"Context:")
+        ARTICLE.append(r.get("context"))
+        ARTICLE.append(f"Transcription: ")
+        ARTICLE.append(r.get("transcription"))
+        ARTICLE.append(f"People: ")
+        ARTICLE.append(r.get("people"))    
     co_summary = co.summarize(text=' '.join(ARTICLE))
 
-    return jsonify({'results': final_similarities, 'summary': co_summary })
+    return jsonify({'results': responses, 'summary': co_summary })
 
 
 if __name__ == '__main__':
