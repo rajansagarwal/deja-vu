@@ -6,6 +6,7 @@
 
 # Ignore server build output
 /server/build
+/server/node_modules/
 
 # misc
 .DS_Store
