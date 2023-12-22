@@ -1,7 +1,7 @@
 # Ignore build output
 /build
 
-interface/public/
+/interface/public/
 
 # Ignore environment variables file
 .env
