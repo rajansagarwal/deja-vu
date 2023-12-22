@@ -1,45 +1,15 @@
-# Ignore node_modules directory
-/interface/node_modules/
-
 # Ignore build output
 /build
 
 # Ignore environment variables file
 .env
 
-# Ignore interface build output
-/interface/build
-
 # Ignore server build output
 /server/build
-
-/interface/.pnp
-/interface.pnp.js
-
-# testing
-/interface/coverage
-
-# next.js
-/interface/.next/
-/interface/out/
-
-# production
-/interface/build
 
 # misc
 .DS_Store
 *.pem
-
-# debug
-/interfacenpm-debug.log*
-/interfaceyarn-debug.log*
-/interfaceyarn-error.log*
-
-# local env files
-/interface.env*.local
-
-# vercel
-/interface.vercel
 
 # typescript
 *.tsbuildinfo
