@@ -1,6 +1,8 @@
 # Ignore build output
 /build
 
+interface/public/fragment_28.mp4
+
 # Ignore environment variables file
 .env
 
