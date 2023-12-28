@@ -43,7 +43,7 @@ def add():
             data_object=properties,
             class_name="Media"
         )
-    return jsonify({'results': 'successfully added new video'})
+    return jsonify({'results': 'successfully added new video embedding'})
 
 @app.route('/api/branch', methods=["POST", "GET"])
 def branch():
