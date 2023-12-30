@@ -1,0 +1,31 @@
+requirements.txt
+
+Physical Device
+- Contains video module, speaker and microphone
+- Has three buttons: power, audio, and video
+- Always-on recording
+- Features durable battery
+- Tracks location
+- Sends data to cloud
+
+Website
+- User Login (Google Sign-In)
+- Basic settings (ex. Changing assistant voice/name, managing integrations)
+- Visualize knowledge graph
+- Ask assistant questions and receive text responses (ex. summarize lecture)
+
+Algorithms/Knowledge Graph
+- Storing vectors in Weaviate for RAG
+- Daily summarizations (viewable in website/email/agent)
+- Constructing knowledge graph and visualization
+- Location and person detection
+
+Assistant
+- Set Google Calendar reminders, Apple alarms, send emails/texts, write things down in notes
+- Able to talk to and reason (ex. reflections or mini-therapist)
+- Knows you entirely based on knowledge graph so it is tailored to you
+- TTS w/ human-like voice and with wake word detection
+
+Questions to Answer:
+1) Where is the processing done - on-device or on-cloud?
+2) Will it feature a flexible API?
