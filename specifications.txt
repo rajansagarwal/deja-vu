@@ -27,10 +27,5 @@ Assistant
 - TTS w/ human-like voice and with wake word detection
 
 Questions to Answer:
-1. Where is the processing done - on-device or on-cloud?
-2. Will it feature a flexible API?
-
-Next Steps:
-1. Host Model through API for quick classification
-2. Figure out how to format output
-3. Set up routes for different outputs
+1) Where is the processing done - on-device or on-cloud?
+2) Will it feature a flexible API?
